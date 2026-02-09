@@ -1,9 +1,9 @@
 package db
 
 import (
+	"context"
 	"github.com/xiehqing/common/models"
 	"github.com/xiehqing/common/pkg/ormx"
-	"gorm.io/gorm"
 )
 
 type AppUploadFiles struct {
@@ -22,19 +22,19 @@ func (af *AppUploadFiles) TableName() string {
 }
 
 // CreateAppUploadFiles 保存应用上传文件
-func CreateAppUploadFiles(db *gorm.DB, files []*AppUploadFiles) error {
-	return models.CreateInBatches(db, files)
+func (q *Queries) CreateAppUploadFiles(ctx context.Context, files []*AppUploadFiles) error {
+	return models.CreateInBatches(q.db, files)
 }
 
 // UpdateAppUploadFiles 更新应用上传文件
-func UpdateAppUploadFiles(db *gorm.DB, files []*AppUploadFiles) error {
-	return models.Update(db, files)
+func (q *Queries) UpdateAppUploadFiles(ctx context.Context, files []*AppUploadFiles) error {
+	return models.Update(q.db, files)
 }
 
 // GetAppUploadFiles 获取应用上传文件
-func GetAppUploadFiles(db *gorm.DB, appID int64, userID *int64, sessionID string) ([]*AppUploadFiles, error) {
+func (q *Queries) GetAppUploadFiles(ctx context.Context, appID int64, userID *int64, sessionID string) ([]*AppUploadFiles, error) {
 	var files []*AppUploadFiles
-	tx := db.Model(&AppUploadFiles{}).Where("app_id = ?", appID)
+	tx := q.db.Model(&AppUploadFiles{}).Where("app_id = ?", appID)
 	if userID != nil {
 		tx = tx.Where("user_id = ?", *userID)
 	}
@@ -46,9 +46,9 @@ func GetAppUploadFiles(db *gorm.DB, appID int64, userID *int64, sessionID string
 }
 
 // GetAppSessionUploadFiles 获取应用上传文件
-func GetAppSessionUploadFiles(db *gorm.DB, sessionID string, targetFiles []string) ([]*AppUploadFiles, error) {
+func (q *Queries) GetAppSessionUploadFiles(ctx context.Context, sessionID string, targetFiles []string) ([]*AppUploadFiles, error) {
 	var files []*AppUploadFiles
-	tx := db.Model(&AppUploadFiles{}).Where("session_id = ?", sessionID)
+	tx := q.db.Model(&AppUploadFiles{}).Where("session_id = ?", sessionID)
 	if len(targetFiles) > 0 {
 		tx = tx.Where("target_path IN ?", targetFiles)
 	}

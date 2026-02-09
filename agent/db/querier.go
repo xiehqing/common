@@ -29,6 +29,18 @@ type Querier interface {
 	UpdateSessionTitleAndUsage(ctx context.Context, arg UpdateSessionTitleAndUsageArgs) error
 	GetProviders(ctx context.Context) ([]Provider, error)
 	GetBigModels(ctx context.Context) ([]BigModel, error)
+	GetAllApps(ctx context.Context, status *int) ([]*Apps, error)
+	UpdateApp(ctx context.Context, app *Apps) error
+	GetAppSessions(ctx context.Context, appId int64) ([]*AppSessions, error)
+	CreateAppSession(ctx context.Context, userId, appId int64, sessionId string) error
+	DeleteAppSession(ctx context.Context, sessionId string) error
+	GetDataAppSession(ctx context.Context, tenantId, userId, appId int64, dataType, dataId string) (*AppSessions, error)
+	CreateDataAppSession(ctx context.Context, tenantId, userId, appId int64, dataType, dataId, sessionId string) error
+	GetAppSessionsByDataIds(ctx context.Context, appId int64, dataType string, dataId []string) ([]*AppSessions, error)
+	CreateAppUploadFiles(ctx context.Context, files []*AppUploadFiles) error
+	UpdateAppUploadFiles(ctx context.Context, files []*AppUploadFiles) error
+	GetAppUploadFiles(ctx context.Context, appID int64, userID *int64, sessionID string) ([]*AppUploadFiles, error)
+	GetAppSessionUploadFiles(ctx context.Context, sessionID string, targetFiles []string) ([]*AppUploadFiles, error)
 }
 
 var _ Querier = (*Queries)(nil)

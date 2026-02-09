@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"github.com/pkg/errors"
 	"github.com/xiehqing/common/pkg/ormx"
 	"gorm.io/gorm"
@@ -21,15 +22,15 @@ func (as *AppSessions) TableName() string {
 }
 
 // GetAppSessions 获取应用sessions
-func GetAppSessions(db *gorm.DB, appId int64) ([]*AppSessions, error) {
+func (q *Queries) GetAppSessions(ctx context.Context, appId int64) ([]*AppSessions, error) {
 	var appSessions []*AppSessions
-	err := db.Where("app_id = ?", appId).Find(&appSessions).Error
+	err := q.db.Where("app_id = ?", appId).Find(&appSessions).Error
 	return appSessions, err
 }
 
 // CreateAppSession 创建应用session
-func CreateAppSession(db *gorm.DB, userId, appId int64, sessionId string) error {
-	return db.Where("app_id = ? and session_id = ? and user_id = ?", appId, sessionId, userId).FirstOrCreate(&AppSessions{
+func (q *Queries) CreateAppSession(ctx context.Context, userId, appId int64, sessionId string) error {
+	return q.db.Where("app_id = ? and session_id = ? and user_id = ?", appId, sessionId, userId).FirstOrCreate(&AppSessions{
 		AppID:     appId,
 		SessionID: sessionId,
 		UserID:    userId,
@@ -37,8 +38,8 @@ func CreateAppSession(db *gorm.DB, userId, appId int64, sessionId string) error 
 }
 
 // DeleteAppSession 删除应用session
-func DeleteAppSession(db *gorm.DB, sessionId string) error {
-	err := db.Transaction(func(tx *gorm.DB) error {
+func (q *Queries) DeleteAppSession(ctx context.Context, sessionId string) error {
+	err := q.db.Transaction(func(tx *gorm.DB) error {
 		err := tx.Where("session_id = ?", sessionId).Delete(&AppSessions{}).Error
 		if err != nil {
 			return errors.WithMessage(err, "delete app_sessions error")
@@ -49,9 +50,9 @@ func DeleteAppSession(db *gorm.DB, sessionId string) error {
 }
 
 // GetDataAppSession 获取应用数据session
-func GetDataAppSession(db *gorm.DB, tenantId, userId, appId int64, dataType, dataId string) (*AppSessions, error) {
+func (q *Queries) GetDataAppSession(ctx context.Context, tenantId, userId, appId int64, dataType, dataId string) (*AppSessions, error) {
 	var appSession *AppSessions
-	err := db.Where("app_id = ? and user_id = ? and tenant_id = ? and data_type = ? and data_id = ?",
+	err := q.db.Where("app_id = ? and user_id = ? and tenant_id = ? and data_type = ? and data_id = ?",
 		appId, userId, tenantId, dataType, dataId).First(&appSession).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -63,8 +64,8 @@ func GetDataAppSession(db *gorm.DB, tenantId, userId, appId int64, dataType, dat
 }
 
 // CreateDataAppSession 创建应用数据session
-func CreateDataAppSession(db *gorm.DB, tenantId, userId, appId int64, dataType, dataId, sessionId string) error {
-	return db.Where("app_id = ? and session_id = ? and user_id = ? and data_type = ? and data_id = ? and tenant_id = ?",
+func (q *Queries) CreateDataAppSession(ctx context.Context, tenantId, userId, appId int64, dataType, dataId, sessionId string) error {
+	return q.db.Where("app_id = ? and session_id = ? and user_id = ? and data_type = ? and data_id = ? and tenant_id = ?",
 		appId, sessionId, userId, dataType, dataId, tenantId).FirstOrCreate(&AppSessions{
 		AppID:     appId,
 		SessionID: sessionId,
@@ -76,9 +77,9 @@ func CreateDataAppSession(db *gorm.DB, tenantId, userId, appId int64, dataType, 
 }
 
 // GetAppSessionsByDataIds 根据dataId获取Agent会话
-func GetAppSessionsByDataIds(db *gorm.DB, appId int64, dataType string, dataId []string) ([]*AppSessions, error) {
+func (q *Queries) GetAppSessionsByDataIds(ctx context.Context, appId int64, dataType string, dataId []string) ([]*AppSessions, error) {
 	var agentConversations []*AppSessions
-	err := db.Where("app_id = ? and data_type = ? and data_id in ?", appId, dataType, dataId).Find(&agentConversations).Error
+	err := q.db.Where("app_id = ? and data_type = ? and data_id in ?", appId, dataType, dataId).Find(&agentConversations).Error
 	if err != nil {
 		return nil, errors.WithMessagef(err, "查询APP会话失败")
 	}

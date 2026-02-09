@@ -1,8 +1,8 @@
 package db
 
 import (
+	"context"
 	"github.com/xiehqing/common/pkg/ormx"
-	"gorm.io/gorm"
 )
 
 type Apps struct {
@@ -27,16 +27,16 @@ func (a *Apps) TableName() string {
 }
 
 // GetAllApps 获取所有应用
-func GetAllApps(db *gorm.DB, status *int) ([]*Apps, error) {
+func (q *Queries) GetAllApps(ctx context.Context, status *int) ([]*Apps, error) {
 	var apps []*Apps
 	if status != nil {
-		db = db.Where("status = ?", *status)
+		q.db = q.db.Where("status = ?", *status)
 	}
-	err := db.Find(&apps).Error
+	err := q.db.Find(&apps).Error
 	return apps, err
 }
 
 // UpdateApp 更新应用
-func UpdateApp(db *gorm.DB, app *Apps) error {
-	return db.Save(app).Error
+func (q *Queries) UpdateApp(ctx context.Context, app *Apps) error {
+	return q.db.Save(app).Error
 }

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/xiehqing/common/agent/agent"
 	"github.com/xiehqing/common/agent/app"
-	"github.com/xiehqing/common/agent/db"
+	"github.com/xiehqing/common/agent/appsessions"
 	"github.com/xiehqing/common/agent/message"
 	"github.com/xiehqing/common/agent/session"
 	"github.com/xiehqing/common/pkg/logs"
@@ -15,10 +15,13 @@ import (
 )
 
 type Service struct {
+	appSessions appsessions.Service
 }
 
-func NewService() *Service {
-	return &Service{}
+func NewService(appSessions appsessions.Service) *Service {
+	return &Service{
+		appSessions: appSessions,
+	}
 }
 
 // handleSession 处理session
@@ -31,7 +34,7 @@ func (s *Service) handleSession(ctx context.Context, dbClient *gorm.DB, userId, 
 		if err != nil {
 			return session, fmt.Errorf("could not create session:%v", err)
 		}
-		err = db.CreateAppSession(dbClient, userId, appId, session.ID)
+		err = s.appSessions.CreateAppSession(ctx, userId, appId, session.ID)
 		if err != nil {
 			logs.Errorf("could not create app session:%v", err)
 		}
@@ -44,7 +47,7 @@ func (s *Service) handleSession(ctx context.Context, dbClient *gorm.DB, userId, 
 					return session, fmt.Errorf("could not create session:%v", err)
 				}
 				session = newSession
-				err = db.CreateAppSession(dbClient, userId, appId, session.ID)
+				err = s.appSessions.CreateAppSession(ctx, userId, appId, session.ID)
 				if err != nil {
 					logs.Errorf("could not create app session:%v", err)
 				}
