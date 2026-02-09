@@ -1,9 +1,9 @@
 package models
 
 import (
-	"github.com/hatcher/common/pkg/logs"
-	"github.com/hatcher/common/pkg/util"
 	"github.com/pkg/errors"
+	"github.com/xiehaiqing/common/pkg/logs"
+	"github.com/xiehaiqing/common/pkg/util"
 	"gorm.io/gorm"
 	"reflect"
 	"strings"

@@ -1,4 +1,4 @@
-module github.com/hatcher/common
+module github.com/xiehaiqing/common
 
 go 1.25.5
 

@@ -1,8 +1,8 @@
 package schedule
 
 import (
-	"github.com/hatcher/common/pkg/logs"
 	"github.com/robfig/cron/v3"
+	"github.com/xiehaiqing/common/pkg/logs"
 	"strconv"
 	"time"
 )

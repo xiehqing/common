@@ -1,7 +1,7 @@
 package home
 
 import (
-	"github.com/hatcher/common/pkg/logs"
+	"github.com/xiehaiqing/common/pkg/logs"
 	"os"
 	"path/filepath"
 	"strings"

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
-	"github.com/hatcher/common/pkg/jwtx/store"
+	"github.com/xiehaiqing/common/pkg/jwtx/store"
 	"time"
 )
 

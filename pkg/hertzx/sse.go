@@ -1,8 +1,8 @@
 package hertzx
 
 import (
-	"github.com/hatcher/common/pkg/util"
 	"github.com/hertz-contrib/sse"
+	"github.com/xiehaiqing/common/pkg/util"
 )
 
 type SseSender struct {

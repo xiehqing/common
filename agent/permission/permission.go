@@ -3,8 +3,8 @@ package permission
 import (
 	"context"
 	"github.com/google/uuid"
-	"github.com/hatcher/common/agent/csync"
-	"github.com/hatcher/common/agent/pubsub"
+	"github.com/xiehaiqing/common/agent/csync"
+	"github.com/xiehaiqing/common/agent/pubsub"
 	"os"
 	"path/filepath"
 	"slices"

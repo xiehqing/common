@@ -2,9 +2,9 @@ package mcp
 
 import (
 	"context"
-	"github.com/hatcher/common/agent/csync"
-	"github.com/hatcher/common/pkg/logs"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/xiehaiqing/common/agent/csync"
+	"github.com/xiehaiqing/common/pkg/logs"
 	"iter"
 )
 

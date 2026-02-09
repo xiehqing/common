@@ -3,8 +3,8 @@ package tools
 import (
 	"context"
 	"fmt"
-	"github.com/hatcher/common/agent/mcp"
-	"github.com/hatcher/common/agent/permission"
+	"github.com/xiehaiqing/common/agent/mcp"
+	"github.com/xiehaiqing/common/agent/permission"
 
 	"charm.land/fantasy"
 )

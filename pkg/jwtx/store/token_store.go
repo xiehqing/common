@@ -3,9 +3,9 @@ package store
 import (
 	"context"
 	"fmt"
-	"github.com/hatcher/common/pkg/ormx"
-	"github.com/hatcher/common/pkg/redisx"
-	"github.com/hatcher/common/pkg/util"
+	"github.com/xiehaiqing/common/pkg/ormx"
+	"github.com/xiehaiqing/common/pkg/redisx"
+	"github.com/xiehaiqing/common/pkg/util"
 	"time"
 )
 

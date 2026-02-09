@@ -3,8 +3,8 @@ package lsp
 import (
 	"context"
 	"encoding/json"
-	"github.com/hatcher/common/agent/config"
-	"github.com/hatcher/common/agent/lsp/util"
+	"github.com/xiehaiqing/common/agent/config"
+	"github.com/xiehaiqing/common/agent/lsp/util"
 	"log/slog"
 
 	"github.com/charmbracelet/x/powernap/pkg/lsp/protocol"

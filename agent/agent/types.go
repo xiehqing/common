@@ -3,9 +3,9 @@ package agent
 import (
 	"charm.land/fantasy"
 	"github.com/charmbracelet/catwalk/pkg/catwalk"
-	"github.com/hatcher/common/agent/config"
-	"github.com/hatcher/common/agent/message"
-	"github.com/hatcher/common/agent/session"
+	"github.com/xiehaiqing/common/agent/config"
+	"github.com/xiehaiqing/common/agent/message"
+	"github.com/xiehaiqing/common/agent/session"
 )
 
 type Model struct {

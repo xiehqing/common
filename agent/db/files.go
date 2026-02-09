@@ -2,7 +2,7 @@ package db
 
 import (
 	"context"
-	"github.com/hatcher/common/pkg/ormx"
+	"github.com/xiehaiqing/common/pkg/ormx"
 )
 
 // CreateFile 创建文件

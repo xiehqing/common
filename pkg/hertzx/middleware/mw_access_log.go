@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/cloudwego/hertz/pkg/app"
-	"github.com/hatcher/common/pkg/logs"
+	"github.com/xiehaiqing/common/pkg/logs"
 	"net/http"
 	"path/filepath"
 	"strings"

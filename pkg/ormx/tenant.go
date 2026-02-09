@@ -2,8 +2,8 @@ package ormx
 
 import (
 	"fmt"
-	"github.com/hatcher/common/pkg/logs"
 	"github.com/pkg/errors"
+	"github.com/xiehaiqing/common/pkg/logs"
 	"gorm.io/gorm"
 	"sync"
 )

@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/hatcher/common/agent/provider"
+	"github.com/xiehaiqing/common/agent/provider"
 	"sync/atomic"
 )
 
