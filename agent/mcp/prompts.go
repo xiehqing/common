@@ -3,8 +3,8 @@ package mcp
 import (
 	"context"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
-	"github.com/xiehaiqing/common/agent/csync"
-	"github.com/xiehaiqing/common/pkg/logs"
+	"github.com/xiehqing/common/agent/csync"
+	"github.com/xiehqing/common/pkg/logs"
 	"iter"
 )
 

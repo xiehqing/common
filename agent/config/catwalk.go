@@ -5,7 +5,7 @@ import (
 	"errors"
 	"github.com/charmbracelet/catwalk/pkg/catwalk"
 	"github.com/charmbracelet/catwalk/pkg/embedded"
-	"github.com/xiehaiqing/common/pkg/logs"
+	"github.com/xiehqing/common/pkg/logs"
 	"sync"
 	"sync/atomic"
 )

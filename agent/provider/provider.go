@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/charmbracelet/catwalk/pkg/catwalk"
-	"github.com/xiehaiqing/common/agent/db"
+	"github.com/xiehqing/common/agent/db"
 )
 
 type Service interface {

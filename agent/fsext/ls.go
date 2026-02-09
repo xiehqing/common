@@ -2,8 +2,8 @@ package fsext
 
 import (
 	"errors"
-	"github.com/xiehaiqing/common/agent/csync"
-	"github.com/xiehaiqing/common/agent/home"
+	"github.com/xiehqing/common/agent/csync"
+	"github.com/xiehqing/common/agent/home"
 	"log/slog"
 	"os"
 	"path/filepath"

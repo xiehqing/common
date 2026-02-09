@@ -5,9 +5,9 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"github.com/xiehaiqing/common/agent/agent/prompt"
-	"github.com/xiehaiqing/common/agent/agent/tools"
-	"github.com/xiehaiqing/common/agent/config"
+	"github.com/xiehqing/common/agent/agent/prompt"
+	"github.com/xiehqing/common/agent/agent/tools"
+	"github.com/xiehqing/common/agent/config"
 
 	"charm.land/fantasy"
 )

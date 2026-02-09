@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/xiehaiqing/common/agent/csync"
+	"github.com/xiehqing/common/agent/csync"
 	"slices"
 	"sync"
 	"sync/atomic"

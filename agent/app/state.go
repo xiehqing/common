@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/xiehaiqing/common/pkg/logs"
+	"github.com/xiehqing/common/pkg/logs"
 	"sync"
 )
 

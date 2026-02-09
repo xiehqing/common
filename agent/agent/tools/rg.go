@@ -2,7 +2,7 @@ package tools
 
 import (
 	"context"
-	"github.com/xiehaiqing/common/pkg/logs"
+	"github.com/xiehqing/common/pkg/logs"
 	"os/exec"
 	"path/filepath"
 	"strings"

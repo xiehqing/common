@@ -2,7 +2,7 @@ package schedule
 
 import (
 	"github.com/robfig/cron/v3"
-	"github.com/xiehaiqing/common/pkg/logs"
+	"github.com/xiehqing/common/pkg/logs"
 	"strconv"
 	"time"
 )

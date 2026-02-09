@@ -2,7 +2,7 @@ package util
 
 import (
 	"fmt"
-	"github.com/xiehaiqing/common/pkg/logs"
+	"github.com/xiehqing/common/pkg/logs"
 	"strconv"
 	"time"
 )

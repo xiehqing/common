@@ -3,7 +3,7 @@ package fsext
 import (
 	"errors"
 	"fmt"
-	"github.com/xiehaiqing/common/agent/home"
+	"github.com/xiehqing/common/agent/home"
 	"os"
 	"path/filepath"
 )

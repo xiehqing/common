@@ -1,7 +1,7 @@
 package tools
 
 import (
-	"github.com/xiehaiqing/common/pkg/logs"
+	"github.com/xiehqing/common/pkg/logs"
 	"testing"
 	"unicode/utf8"
 )

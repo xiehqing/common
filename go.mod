@@ -1,4 +1,4 @@
-module github.com/xiehaiqing/common
+module github.com/xiehqing/common
 
 go 1.25.5
 

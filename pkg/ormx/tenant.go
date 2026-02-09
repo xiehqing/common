@@ -3,7 +3,7 @@ package ormx
 import (
 	"fmt"
 	"github.com/pkg/errors"
-	"github.com/xiehaiqing/common/pkg/logs"
+	"github.com/xiehqing/common/pkg/logs"
 	"gorm.io/gorm"
 	"sync"
 )

@@ -2,7 +2,7 @@ package projects
 
 import (
 	"encoding/json"
-	"github.com/xiehaiqing/common/agent/config"
+	"github.com/xiehqing/common/agent/config"
 	"os"
 	"path/filepath"
 	"slices"

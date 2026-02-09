@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"github.com/xiehaiqing/common/agent/app"
+	"github.com/xiehqing/common/agent/app"
 )
 
 func main() {

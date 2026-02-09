@@ -1,7 +1,7 @@
 package home
 
 import (
-	"github.com/xiehaiqing/common/pkg/logs"
+	"github.com/xiehqing/common/pkg/logs"
 	"os"
 	"path/filepath"
 	"strings"

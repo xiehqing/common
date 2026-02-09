@@ -1,7 +1,7 @@
 package db
 
 import (
-	"github.com/xiehaiqing/common/pkg/ormx"
+	"github.com/xiehqing/common/pkg/ormx"
 	"gorm.io/gorm"
 )
 

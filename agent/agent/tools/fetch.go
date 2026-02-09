@@ -4,7 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"github.com/xiehaiqing/common/agent/permission"
+	"github.com/xiehqing/common/agent/permission"
 	"io"
 	"net/http"
 	"strings"

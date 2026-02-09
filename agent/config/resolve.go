@@ -3,8 +3,8 @@ package config
 import (
 	"context"
 	"fmt"
-	"github.com/xiehaiqing/common/agent/env"
-	"github.com/xiehaiqing/common/agent/shell"
+	"github.com/xiehqing/common/agent/env"
+	"github.com/xiehqing/common/agent/shell"
 
 	"strings"
 	"time"

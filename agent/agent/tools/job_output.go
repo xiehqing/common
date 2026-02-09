@@ -4,7 +4,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"github.com/xiehaiqing/common/agent/shell"
+	"github.com/xiehqing/common/agent/shell"
 	"strings"
 
 	"charm.land/fantasy"

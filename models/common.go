@@ -2,8 +2,8 @@ package models
 
 import (
 	"github.com/pkg/errors"
-	"github.com/xiehaiqing/common/pkg/logs"
-	"github.com/xiehaiqing/common/pkg/util"
+	"github.com/xiehqing/common/pkg/logs"
+	"github.com/xiehqing/common/pkg/util"
 	"gorm.io/gorm"
 	"reflect"
 	"strings"

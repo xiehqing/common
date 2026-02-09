@@ -3,7 +3,7 @@ package app
 import (
 	"fmt"
 	xstrings "github.com/charmbracelet/x/exp/strings"
-	"github.com/xiehaiqing/common/agent/config"
+	"github.com/xiehqing/common/agent/config"
 	"strings"
 )
 

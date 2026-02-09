@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/xiehaiqing/common/agent/oauth"
+	"github.com/xiehqing/common/agent/oauth"
 	"io"
 	"net/http"
 	"net/url"

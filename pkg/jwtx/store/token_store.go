@@ -3,9 +3,9 @@ package store
 import (
 	"context"
 	"fmt"
-	"github.com/xiehaiqing/common/pkg/ormx"
-	"github.com/xiehaiqing/common/pkg/redisx"
-	"github.com/xiehaiqing/common/pkg/util"
+	"github.com/xiehqing/common/pkg/ormx"
+	"github.com/xiehqing/common/pkg/redisx"
+	"github.com/xiehqing/common/pkg/util"
 	"time"
 )
 

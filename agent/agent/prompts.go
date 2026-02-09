@@ -3,8 +3,8 @@ package agent
 import (
 	"context"
 	_ "embed"
-	"github.com/xiehaiqing/common/agent/agent/prompt"
-	"github.com/xiehaiqing/common/agent/config"
+	"github.com/xiehqing/common/agent/agent/prompt"
+	"github.com/xiehqing/common/agent/config"
 )
 
 //go:embed templates/coder.md.tpl

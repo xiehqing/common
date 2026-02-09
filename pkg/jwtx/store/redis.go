@@ -6,8 +6,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/redis/go-redis/v9"
 	"github.com/toolkits/pkg/logger"
-	"github.com/xiehaiqing/common/pkg/logs"
-	"github.com/xiehaiqing/common/pkg/redisx"
+	"github.com/xiehqing/common/pkg/logs"
+	"github.com/xiehqing/common/pkg/redisx"
 	"strconv"
 	"time"
 )

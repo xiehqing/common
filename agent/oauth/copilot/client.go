@@ -4,7 +4,7 @@ package copilot
 import (
 	"bytes"
 	"fmt"
-	"github.com/xiehaiqing/common/agent/log"
+	"github.com/xiehqing/common/agent/log"
 	"io"
 	"log/slog"
 	"net/http"

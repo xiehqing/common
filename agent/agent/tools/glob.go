@@ -5,7 +5,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"github.com/xiehaiqing/common/agent/fsext"
+	"github.com/xiehqing/common/agent/fsext"
 	"log/slog"
 	"os/exec"
 	"path/filepath"
