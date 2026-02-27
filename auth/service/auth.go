@@ -10,6 +10,10 @@ import (
 type BaseService struct {
 }
 
+func NewAuthService() *BaseService {
+	return &BaseService{}
+}
+
 // GetUsers 获取用户列表
 func (bs *BaseService) GetUsers(db *gorm.DB, where string, args ...interface{}) ([]*User, error) {
 	var users []*entity.User
