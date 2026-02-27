@@ -1,6 +1,9 @@
 package service
 
-import "gorm.io/gorm"
+import (
+	"github.com/xiehqing/common/auth/entity"
+	"gorm.io/gorm"
+)
 
 type User struct {
 	ID       int64    `json:"id"`
@@ -30,6 +33,18 @@ func (u *User) IsAdmin() bool {
 		}
 	}
 	return isAdmin
+}
+
+// HasPermission 是否具有权限
+func (u *User) HasPermission(db *gorm.DB, permission string) (bool, error) {
+	if u.IsAdmin() {
+		return true, nil
+	}
+	var roleIds []int64
+	for _, role := range u.GetRoles() {
+		roleIds = append(roleIds, role.ID)
+	}
+	return entity.CheckRoleOperation(db, roleIds, permission)
 }
 
 func (u *User) CheckTenant(db *gorm.DB, tenantID int64) (*Tenant, error) {
