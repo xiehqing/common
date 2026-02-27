@@ -76,3 +76,16 @@ func FindCommonItemsGeneric[T comparable](slices ...[]T) []T {
 
 	return result
 }
+
+// BatchSlice 将切片分批，每批batchSize个元素
+func BatchSlice[T any](slice []T, batchSize int) [][]T {
+	var batches [][]T
+	for i := 0; i < len(slice); i += batchSize {
+		end := i + batchSize
+		if end > len(slice) {
+			end = len(slice)
+		}
+		batches = append(batches, slice[i:end])
+	}
+	return batches
+}
