@@ -3,7 +3,6 @@ package service
 import (
 	"github.com/pkg/errors"
 	"github.com/xiehqing/common/auth/entity"
-	"github.com/xiehqing/common/models"
 	"github.com/xiehqing/common/pkg/ormx"
 	"gorm.io/gorm"
 )
@@ -22,7 +21,7 @@ func (bs *BaseService) GetUsers(db *gorm.DB, where string, args ...interface{}) 
 	if len(users) == 0 {
 		return userRecords, nil
 	}
-	userIds := models.GetObjIDs(users)
+	userIds := ormx.GetObjIDs(users)
 	var userTenants []*entity.UserTenant
 	err = db.Where("user_id in (?)", userIds).
 		Preload("Tenant").
@@ -223,4 +222,68 @@ func (bs *BaseService) CheckRoleOperation(db *gorm.DB, roleIDs []int64, operatio
 		return false, nil
 	}
 	return ormx.Exists(db.Model(&entity.RoleOperation{}).Where("role_id in (?) and operation = ?", roleIDs, operation))
+}
+
+// GetWxUserByOpenId 获取微信用户信息
+func (bs *BaseService) GetWxUserByOpenId(db *gorm.DB, openId string, unionId string) (*entity.WxUser, error) {
+	var wxUser *entity.WxUser
+	err := db.Where("open_id = ?", openId).First(&wxUser).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, errors.WithMessagef(err, "获取微信用户信息失败")
+	}
+	return wxUser, nil
+}
+
+// GetUserProfile 获取用户基础信息
+func (bs *BaseService) GetUserProfile(db *gorm.DB, userID int64) (*BaseUserInfo, error) {
+	var user *entity.User
+	err := db.Where("id = ?", userID).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, errors.WithMessagef(err, "获取用户信息失败")
+	}
+	return convertToBaseUserInfo(user), nil
+}
+
+// UpdateUserProfile 更新用户基础信息
+func (bs *BaseService) UpdateUserProfile(db *gorm.DB, userId int64, req UpdateUserProfileRequest) error {
+	var user *entity.User
+	err := db.Where("id = ?", userId).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return errors.New("用户不存在")
+		}
+		return errors.WithMessagef(err, "获取用户信息失败")
+	}
+	if req.NickName != nil {
+		user.NickName = *req.NickName
+	}
+	if req.Email != nil {
+		user.Email = *req.Email
+	}
+	if req.Phone != nil {
+		user.Phone = *req.Phone
+	}
+	if req.Avatar != nil {
+		user.Avatar = *req.Avatar
+	}
+	if req.Gender != nil {
+		user.Gender = *req.Gender
+	}
+	if req.Birthday != nil {
+		user.Birthday = *req.Birthday
+	}
+	if req.Signature != nil {
+		user.Signature = *req.Signature
+	}
+	err = ormx.Upsert(db, user)
+	if err != nil {
+		return errors.WithMessagef(err, "更新用户信息失败")
+	}
+	return nil
 }

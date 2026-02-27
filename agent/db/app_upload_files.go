@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"github.com/xiehqing/common/models"
 	"github.com/xiehqing/common/pkg/ormx"
 )
 
@@ -23,12 +22,12 @@ func (af *AppUploadFiles) TableName() string {
 
 // CreateAppUploadFiles 保存应用上传文件
 func (q *Queries) CreateAppUploadFiles(ctx context.Context, files []*AppUploadFiles) error {
-	return models.CreateInBatches(q.db, files)
+	return ormx.CreateInBatches(q.db, files)
 }
 
 // UpdateAppUploadFiles 更新应用上传文件
 func (q *Queries) UpdateAppUploadFiles(ctx context.Context, files []*AppUploadFiles) error {
-	return models.Update(q.db, files)
+	return ormx.Update(q.db, files)
 }
 
 // GetAppUploadFiles 获取应用上传文件

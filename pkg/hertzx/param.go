@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/cloudwego/hertz/pkg/app"
 	"github.com/pkg/errors"
-	"github.com/xiehqing/common/models"
+	"github.com/xiehqing/common/pkg/ormx"
 	"github.com/xiehqing/common/pkg/util"
 	"strconv"
 	"time"
@@ -99,9 +99,9 @@ func QueryDatePtr(c *app.RequestContext, paramName string) (*time.Time, error) {
 }
 
 // ParsePageable 解析分页参数
-func ParsePageable(c *app.RequestContext) (models.Pageable, error) {
+func ParsePageable(c *app.RequestContext) (ormx.Pageable, error) {
 	pageNo, err := QueryInt(c, "pageNo")
-	pageable := models.Pageable{}
+	pageable := ormx.Pageable{}
 	if err != nil {
 		return pageable, errors.WithMessagef(err, "参数 pageNo 不合法")
 	}
@@ -117,5 +117,5 @@ func ParsePageable(c *app.RequestContext) (models.Pageable, error) {
 	if sortOrder != "asc" && sortOrder != "desc" {
 		sortOrder = "desc"
 	}
-	return models.PageRequest(pageNo, pageSize, sortField, sortOrder), nil
+	return ormx.PageRequest(pageNo, pageSize, sortField, sortOrder), nil
 }

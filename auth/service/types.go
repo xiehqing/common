@@ -6,14 +6,34 @@ import (
 )
 
 type User struct {
-	ID       int64    `json:"id"`
-	Username string   `json:"username"`
-	NickName string   `json:"nickName"`
-	Email    string   `json:"email"`
-	Phone    string   `json:"phone"`
-	Password string   `json:"password"`
-	Roles    []Role   `json:"roles"`
-	Tenants  []Tenant `json:"tenants"`
+	ID        int64         `json:"id"`
+	Username  string        `json:"username"`
+	NickName  string        `json:"nickName"`
+	Email     string        `json:"email"`
+	Phone     string        `json:"phone"`
+	Password  string        `json:"password"`
+	Avatar    string        `json:"avatar"`
+	Gender    entity.Gender `json:"gender"`
+	Birthday  string        `json:"birthday"`
+	Signature string        `json:"signature"`
+	Roles     []Role        `json:"roles"`
+	Tenants   []Tenant      `json:"tenants"`
+}
+
+type BaseUserInfo struct {
+	ID             int64         `json:"id"`
+	Username       string        `json:"username"`
+	NickName       string        `json:"nickName"`
+	Email          string        `json:"email"`
+	Phone          string        `json:"phone"`
+	Password       string        `json:"-"`
+	Avatar         string        `json:"avatar"`
+	Gender         entity.Gender `json:"gender"`
+	Birthday       string        `json:"birthday"`
+	Signature      string        `json:"signature"`
+	LastActiveTime string        `json:"lastActiveTime"`
+	CreatedAt      string        `json:"createdAt"`
+	UpdatedAt      string        `json:"updatedAt"`
 }
 
 func (u *User) GetRoles() []Role {
@@ -73,4 +93,39 @@ type Tenant struct {
 	DBName  string `json:"dbName"`
 	Comment string `json:"comment"`
 	IsAdmin bool   `json:"isAdmin"`
+}
+
+// 转换为基础用户信息
+func convertToBaseUserInfo(user *entity.User) *BaseUserInfo {
+	b := &BaseUserInfo{
+		ID:        user.ID,
+		Username:  user.Username,
+		NickName:  user.NickName,
+		Avatar:    user.Avatar,
+		Phone:     user.Phone,
+		Email:     user.Email,
+		Signature: user.Signature,
+		Gender:    user.Gender,
+		Birthday:  user.Birthday,
+	}
+	if user.LastActiveTime != nil {
+		b.LastActiveTime = user.LastActiveTime.Format("2006-01-02 15:04:05")
+	}
+	if user.CreatedAt != nil {
+		b.CreatedAt = user.CreatedAt.Format("2006-01-02 15:04:05")
+	}
+	if user.UpdatedAt != nil {
+		b.UpdatedAt = user.UpdatedAt.Format("2006-01-02 15:04:05")
+	}
+	return b
+}
+
+type UpdateUserProfileRequest struct {
+	NickName  *string        `json:"nickName"`
+	Email     *string        `json:"email"`
+	Phone     *string        `json:"phone"`
+	Avatar    *string        `json:"avatar"`
+	Gender    *entity.Gender `json:"gender"`
+	Birthday  *string        `json:"birthday"`
+	Signature *string        `json:"signature"`
 }
