@@ -40,9 +40,9 @@ func (bs *BaseService) GetUsers(db *gorm.DB, where string, args ...interface{}) 
 		userTenantMap[ut.UserID] = append(userTenantMap[ut.UserID], ut)
 	}
 	for i := 0; i < len(users); i++ {
+		var tenants []Tenant
+		var roles []Role
 		if utes, ok := userTenantMap[users[i].ID]; ok {
-			var tenants []Tenant
-			var roles []Role
 			for _, ut := range utes {
 				tenants = append(tenants, Tenant{
 					ID:      ut.Tenant.ID,
@@ -61,17 +61,17 @@ func (bs *BaseService) GetUsers(db *gorm.DB, where string, args ...interface{}) 
 					TenantID: ut.Tenant.ID,
 				})
 			}
-			userRecords = append(userRecords, &User{
-				ID:       users[i].ID,
-				Username: users[i].Username,
-				NickName: users[i].NickName,
-				Email:    users[i].Email,
-				Phone:    users[i].Phone,
-				Password: users[i].Password,
-				Tenants:  tenants,
-				Roles:    roles,
-			})
 		}
+		userRecords = append(userRecords, &User{
+			ID:       users[i].ID,
+			Username: users[i].Username,
+			NickName: users[i].NickName,
+			Email:    users[i].Email,
+			Phone:    users[i].Phone,
+			Password: users[i].Password,
+			Tenants:  tenants,
+			Roles:    roles,
+		})
 	}
 	return userRecords, nil
 }
