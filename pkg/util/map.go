@@ -169,3 +169,21 @@ func GetMapFromNestedMap(data map[string]interface{}, key string) (map[string]in
 	}
 	return nil, false
 }
+
+// GetInt64 从map中获取int64类型的值
+func GetInt64(data map[string]interface{}, key string) (int64, bool) {
+	value, exists := data[key]
+	if !exists {
+		return 0, false
+	}
+	switch v := value.(type) {
+	case float64:
+		return int64(v), true
+	case int:
+		return int64(v), true
+	case int64:
+		return v, true
+	default:
+		return 0, false
+	}
+}
