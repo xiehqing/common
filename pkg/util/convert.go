@@ -8,6 +8,7 @@ import (
 	"gopkg.in/yaml.v3"
 	"math"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -232,4 +233,125 @@ func IsBase64URLSafe(str string) (bool, []byte) {
 	// URL安全的Base64允许长度不是4的倍数
 	content, err := base64.RawURLEncoding.DecodeString(cleanStr)
 	return err == nil, content
+}
+
+// CanConvertFloatToInt64 判断float64是否可以安全转换为int64
+func CanConvertFloatToInt64(f float64) bool {
+	// 检查是否为NaN或Infinity
+	if math.IsNaN(f) || math.IsInf(f, 0) {
+		return false
+	}
+
+	// 检查是否超出int64范围
+	if f < math.MinInt64 || f > math.MaxInt64 {
+		return false
+	}
+
+	// 检查是否有小数部分（如果要求必须是整数）
+	// 注意：这里只是检查是否可以转换为int64，不要求一定是整数
+	// 如果需要必须是整数，可以添加以下检查：
+	if math.Trunc(f) != f {
+		return false
+	}
+
+	return true
+}
+
+// isPureDigits 检查是否为纯数字
+func isPureDigits(str string) bool {
+	// 匹配纯数字（可能包含前导0）
+	matched, _ := regexp.MatchString(`^\d+$`, str)
+	return matched
+}
+
+// isValidBase64URLChars 检查是否只包含Base64 URL安全字符
+func isValidBase64URLChars(str string) bool {
+	// Base64 URL安全字符集: A-Z, a-z, 0-9, -, _
+	// 注意：= 是填充字符，在RawURLEncoding中通常不需要
+	base64URLRegex := regexp.MustCompile(`^[A-Za-z0-9\-_]+$`)
+	return base64URLRegex.MatchString(str)
+}
+
+// AnalysisUrl 解析url
+func AnalysisUrl(url string, defaultPort string) (string, string) {
+	// 处理前将url中的单引号或者双引号去掉
+	if strings.HasSuffix(url, "/") {
+		url = url[:len(url)-1]
+	}
+	url = strings.ReplaceAll(url, "'", "")
+	url = strings.ReplaceAll(url, "\"", "")
+	url = strings.ReplaceAll(url, "[", "")
+	url = strings.ReplaceAll(url, "]", "")
+	parts := strings.Split(url, "://")
+	var host, port string
+	if len(parts) == 2 {
+		hostPort := strings.Split(parts[1], ":")
+		if len(hostPort) == 2 {
+			host = hostPort[0]
+			port = hostPort[1]
+		} else {
+			host = hostPort[0]
+			port = defaultPort
+		}
+	} else {
+		hostPort := strings.Split(url, ":")
+		if len(hostPort) == 2 {
+			host = hostPort[0]
+			port = hostPort[1]
+		} else {
+			host = hostPort[0]
+			port = defaultPort
+		}
+	}
+	return host, port
+}
+
+// IsCronExpression 判断字符串是否为合法的 Cron 表达式
+func IsCronExpression(s string) bool {
+	// Cron 表达式的基本正则规则（简化版，可根据需求扩展）
+	// 格式：秒 分 时 日 月 周（年可选）
+	cronRegex := `^(\*|(\d+(-\d+)?)(/\d+)?(,(\d+(-\d+)?)(/\d+)?)*$`
+	match, _ := regexp.MatchString(cronRegex, s)
+	return match
+}
+
+// ContainsInt64 判断切片中是否包含指定元素
+func ContainsInt64(elements []int64, element int64) bool {
+	for _, e := range elements {
+		if e == element {
+			return true
+		}
+	}
+	return false
+}
+
+// ContainsInt 判断切片中是否包含指定元素
+func ContainsInt(elements []int, element int) bool {
+	for _, e := range elements {
+		if e == element {
+			return true
+		}
+	}
+	return false
+}
+
+// TitleCase 首字母大写
+func TitleCase(s string) string {
+	return strings.ToUpper(s[:1]) + s[1:]
+}
+
+// RemoveStrBothSideDoubleQuotes 去除字符串两边的双引号
+func RemoveStrBothSideDoubleQuotes(str string) string {
+	if strings.HasPrefix(str, "\"") && strings.HasSuffix(str, "\"") {
+		return str[1 : len(str)-1]
+	}
+	return str
+}
+
+type RoundedFloat float64
+
+// RoundTo 保留指定小数位数
+func (f RoundedFloat) RoundTo(precision int) float64 {
+	multiplier := math.Pow10(precision)
+	return math.Round(float64(f)*multiplier) / multiplier
 }
