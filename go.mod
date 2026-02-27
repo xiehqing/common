@@ -105,6 +105,7 @@ require (
 	github.com/googleapis/enterprise-certificate-proxy v0.3.7 // indirect
 	github.com/googleapis/gax-go/v2 v2.15.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
+	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hidal-go/hidalgo v0.0.0-20190814174001-42e03f3b5eaa // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
@@ -118,11 +119,13 @@ require (
 	github.com/klauspost/cpuid/v2 v2.2.9 // indirect
 	github.com/klauspost/pgzip v1.2.6 // indirect
 	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect
+	github.com/magiconair/properties v1.8.1 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-runewidth v0.0.19 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+	github.com/pelletier/go-toml v1.4.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.22 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.23.2 // indirect
@@ -132,8 +135,10 @@ require (
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/sourcegraph/jsonrpc2 v0.2.1 // indirect
+	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/cast v1.7.1 // indirect
 	github.com/spf13/cobra v0.0.5 // indirect
+	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.7 // indirect
 	github.com/tidwall/gjson v1.18.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
@@ -172,6 +177,7 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250804133106-a7a43d27e69b // indirect
 	google.golang.org/grpc v1.76.0 // indirect
 	google.golang.org/protobuf v1.36.10 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
 require (
@@ -188,6 +194,7 @@ require (
 	github.com/mark3labs/mcp-go v0.44.0
 	github.com/redis/go-redis/v9 v9.17.3
 	github.com/robfig/cron/v3 v3.0.1
+	github.com/spf13/viper v1.4.0
 	github.com/toolkits/pkg v1.3.11
 	github.com/unidoc/unipdf/v3 v3.69.0
 	mvdan.cc/sh/moreinterp v0.0.0-20250902163504-3cf4fd5717a5
