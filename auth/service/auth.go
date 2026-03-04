@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/pkg/errors"
 	"github.com/xiehqing/common/auth/entity"
+	"github.com/xiehqing/common/pkg/logs"
 	"github.com/xiehqing/common/pkg/ormx"
 	"gorm.io/gorm"
 )
@@ -26,52 +27,32 @@ func (bs *BaseService) GetUsers(db *gorm.DB, where string, args ...interface{}) 
 		return userRecords, nil
 	}
 	userIds := ormx.GetObjIDs(users)
-	var userTenants []*entity.UserTenant
-	err = db.Where("user_id in (?)", userIds).
-		Preload("Tenant").
-		Preload("Role").
-		Preload("User").
-		Find(&userTenants).Error
+	var permissionMap = make(map[int64]*UserPermission)
+	permissions, err := bs.GetMultiUserPermissions(db, userIds)
 	if err != nil {
-		return nil, errors.WithMessagef(err, "获取用户租户列表错误.")
-	}
-	var userTenantMap = make(map[int64][]*entity.UserTenant)
-	for _, ut := range userTenants {
-		userTenantMap[ut.UserID] = append(userTenantMap[ut.UserID], ut)
+		logs.Errorf("获取用户权限错误:%s", err.Error())
+	} else {
+		for _, p := range permissions {
+			permissionMap[p.UserID] = p
+		}
 	}
 	for i := 0; i < len(users); i++ {
-		var tenants []Tenant
-		var roles []Role
-		if utes, ok := userTenantMap[users[i].ID]; ok {
-			for _, ut := range utes {
-				tenants = append(tenants, Tenant{
-					ID:      ut.Tenant.ID,
-					Name:    ut.Tenant.Name,
-					Code:    ut.Tenant.Code,
-					DBName:  ut.Tenant.DBName,
-					Comment: ut.Tenant.Comment,
-					IsAdmin: ut.IsAdmin(),
-				})
-				roles = append(roles, Role{
-					ID:       ut.Role.ID,
-					Name:     ut.Role.Name,
-					Code:     ut.Role.Code,
-					IsAdmin:  ut.Role.Admin(),
-					Comment:  ut.Role.Comment,
-					TenantID: ut.Tenant.ID,
-				})
-			}
+		u := &User{
+			ID:        users[i].ID,
+			Username:  users[i].Username,
+			NickName:  users[i].NickName,
+			Email:     users[i].Email,
+			Phone:     users[i].Phone,
+			Password:  users[i].Password,
+			Avatar:    users[i].Avatar,
+			Gender:    users[i].Gender,
+			Birthday:  users[i].Birthday,
+			Signature: users[i].Signature,
 		}
-		userRecords = append(userRecords, &User{
-			ID:       users[i].ID,
-			Username: users[i].Username,
-			NickName: users[i].NickName,
-			Email:    users[i].Email,
-			Phone:    users[i].Phone,
-			Password: users[i].Password,
-			Tenants:  tenants,
-			Roles:    roles,
-		})
+		if p, ok := permissionMap[users[i].ID]; ok {
+			u.Permission = p
+		}
+		userRecords = append(userRecords, u)
 	}
 	return userRecords, nil
 }
@@ -106,12 +87,176 @@ func (bs *BaseService) GetUserByUsername(db *gorm.DB, username string) (*User, e
 	return users[0], nil
 }
 
+// GetUserPermissions 获取用户权限
+func (bs *BaseService) GetUserPermissions(db *gorm.DB, userID int64) (*UserPermission, error) {
+	permissions, err := bs.GetMultiUserPermissions(db, []int64{userID})
+	if err != nil {
+		return nil, err
+	}
+	if len(permissions) == 0 {
+		return nil, errors.Errorf("未发现有效用户.")
+	}
+	return permissions[0], nil
+}
+
+// GetMultiUserPermissions 获取多个用户权限
+func (bs *BaseService) GetMultiUserPermissions(db *gorm.DB, userIDs []int64) ([]*UserPermission, error) {
+	var users []*entity.User
+	var userRoles []*entity.UserRole
+	var userTenants []*entity.UserTenant
+	var roleOperations []*entity.RoleOperation
+	err := db.Where("id in (?)", userIDs).Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(users) == 0 {
+		return nil, errors.Errorf("未发现有效用户.")
+	}
+	err = db.Where("user_id in (?)", userIDs).Preload("Role").Find(&userRoles).Error
+	if err != nil {
+		return nil, errors.WithMessagef(err, "获取用户角色列表错误.")
+	}
+	err = db.Where("user_id in (?)", userIDs).Preload("Tenant").Find(&userTenants).Error
+	if err != nil {
+		return nil, errors.WithMessagef(err, "获取用户租户列表错误.")
+	}
+	err = db.Find(&roleOperations).Error
+	if err != nil {
+		return nil, errors.WithMessagef(err, "获取角色权限列表错误.")
+	}
+	var userPermissions = make([]*UserPermission, 0)
+	for _, user := range users {
+		userPermissions = append(userPermissions, getUserPermission(user.ID, userRoles, userTenants, roleOperations))
+	}
+	return userPermissions, nil
+}
+
+// getUserPermission 获取用户权限
+func getUserPermission(userId int64,
+	userRoles []*entity.UserRole,
+	userTenants []*entity.UserTenant,
+	roleOperations []*entity.RoleOperation,
+) *UserPermission {
+	// 角色权限
+	var roleOptsMap = make(map[int64][]*entity.RoleOperation)
+	for _, ro := range roleOperations {
+		roleOptsMap[ro.RoleID] = append(roleOptsMap[ro.RoleID], ro)
+	}
+	var filterUserRoles []*entity.UserRole
+	var filterUserTenants []*entity.UserTenant
+	for _, r := range userRoles {
+		if r.UserID == userId {
+			filterUserRoles = append(filterUserRoles, r)
+		}
+	}
+	for _, t := range userTenants {
+		if t.UserID == userId {
+			filterUserTenants = append(filterUserTenants, t)
+		}
+	}
+	// 租户角色
+	var tenantPermissionMap = make(map[int64]map[int64]*RolePermission) // key : tenantId  value: map[roleId]rolePermission
+	var systemPermissionMap = make(map[int64]*RolePermission)           // key : roleId  value: rolePermission
+	for _, ur := range filterUserRoles {
+		if ur.Role != nil && ur.Role.TenantID == 0 {
+			var ops []string
+			if ros, ok := roleOptsMap[ur.Role.ID]; ok {
+				for _, ro := range ros {
+					ops = append(ops, ro.Operation)
+				}
+			}
+			// 系统级权限
+			if _, ok := systemPermissionMap[ur.Role.ID]; !ok {
+				systemPermissionMap[ur.Role.ID] = &RolePermission{
+					RoleID: ur.Role.ID,
+					Role: &Role{
+						ID:      ur.Role.ID,
+						Name:    ur.Role.Name,
+						Code:    ur.Role.Code,
+						IsAdmin: ur.Role.Admin(),
+						Comment: ur.Role.Comment,
+					},
+					Operations: ops,
+				}
+			}
+		} else if ur.Role != nil && ur.Role.TenantID != 0 {
+			var ops []string
+			if ros, ok := roleOptsMap[ur.Role.ID]; ok {
+				for _, ro := range ros {
+					ops = append(ops, ro.Operation)
+				}
+			}
+			// 组合权限是否存在此租户的信息
+			if ute, ok := tenantPermissionMap[ur.Role.TenantID]; ok {
+				// 租户级权限，租户下是否存在此角色
+				if _, exist := ute[ur.Role.ID]; !exist {
+					tenantPermissionMap[ur.Role.TenantID][ur.Role.ID] = &RolePermission{
+						RoleID: ur.Role.ID,
+						Role: &Role{
+							ID:       ur.Role.ID,
+							Name:     ur.Role.Name,
+							Code:     ur.Role.Code,
+							IsAdmin:  ur.Role.Admin(),
+							Comment:  ur.Role.Comment,
+							TenantID: ur.Role.TenantID,
+						},
+						Operations: ops,
+					}
+				}
+			} else {
+				tenantPermissionMap[ur.Role.TenantID] = make(map[int64]*RolePermission)
+				tenantPermissionMap[ur.Role.TenantID][ur.Role.ID] = &RolePermission{
+					RoleID: ur.Role.ID,
+					Role: &Role{
+						ID:       ur.Role.ID,
+						Name:     ur.Role.Name,
+						Code:     ur.Role.Code,
+						IsAdmin:  ur.Role.Admin(),
+						Comment:  ur.Role.Comment,
+						TenantID: ur.Role.TenantID,
+					},
+					Operations: ops,
+				}
+			}
+		}
+	}
+
+	var systemPermissions = make([]*RolePermission, 0)
+	for _, sp := range systemPermissionMap {
+		systemPermissions = append(systemPermissions, sp)
+	}
+	var tenantPermissions = make([]*TenantPermission, 0)
+	for _, ut := range filterUserTenants {
+		var roles = make([]*RolePermission, 0)
+		if ute, ok := tenantPermissionMap[ut.TenantID]; ok {
+			for _, rp := range ute {
+				roles = append(roles, rp)
+			}
+		}
+		tenantPermissions = append(tenantPermissions, &TenantPermission{
+			TenantID: ut.TenantID,
+			Tenant: &Tenant{
+				ID:      ut.Tenant.ID,
+				Name:    ut.Tenant.Name,
+				Code:    ut.Tenant.Code,
+				DBName:  ut.Tenant.DBName,
+				Comment: ut.Tenant.Comment,
+			},
+			Roles: roles,
+		})
+	}
+	return &UserPermission{
+		UserID:            userId,
+		SystemPermissions: systemPermissions,
+		TenantPermissions: tenantPermissions,
+	}
+}
+
 // GetUserTenantsByUserIDs 获取用户租户列表
 func (bs *BaseService) GetUserTenantsByUserIDs(db *gorm.DB, userIDs []int64) ([]*entity.UserTenant, error) {
 	var uts []*entity.UserTenant
 	err := db.Where("user_id in ?", userIDs).
 		Preload("Tenant").
-		Preload("Role").
 		Preload("User").
 		Find(&uts).
 		Error
@@ -131,7 +276,6 @@ func (bs *BaseService) GetUserTenantsByTenantID(db *gorm.DB, tenantID int64) ([]
 	var uts []*entity.UserTenant
 	err := db.Where("tenant_id = ?", tenantID).
 		Preload("Tenant").
-		Preload("Role").
 		Preload("User").
 		Find(&uts).
 		Error

@@ -19,3 +19,11 @@ func (r *Role) TableName() string {
 func (r *Role) Admin() bool {
 	return r.IsAdmin == 1
 }
+
+type RoleCode string
+
+const (
+	SystemRoleOfAdmin RoleCode = "system_admin"
+	TenantRoleOfAdmin RoleCode = "tenant_admin"
+	TenantRoleOfOwner RoleCode = "tenant_owner"
+)
