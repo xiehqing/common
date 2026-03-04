@@ -6,6 +6,7 @@ import (
 	"github.com/xiehqing/common/pkg/logs"
 	"github.com/xiehqing/common/pkg/ormx"
 	"gorm.io/gorm"
+	"time"
 )
 
 type BaseService struct {
@@ -48,6 +49,12 @@ func (bs *BaseService) GetUsers(db *gorm.DB, where string, args ...interface{}) 
 			Gender:    users[i].Gender,
 			Birthday:  users[i].Birthday,
 			Signature: users[i].Signature,
+			Status:    users[i].Status,
+			CreatedAt: users[i].CreatedAt.Format("2006-01-02 15:04:05"),
+			UpdatedAt: users[i].UpdatedAt.Format("2006-01-02 15:04:05"),
+		}
+		if users[i].LastActiveTime != nil {
+			u.LastLoginAt = users[i].LastActiveTime.Format("2006-01-02 15:04:05")
 		}
 		if p, ok := permissionMap[users[i].ID]; ok {
 			u.Permission = p
@@ -434,4 +441,47 @@ func (bs *BaseService) UpdateUserProfile(db *gorm.DB, userId int64, req UpdateUs
 		return errors.WithMessagef(err, "更新用户信息失败")
 	}
 	return nil
+}
+
+// GetUserActivityLogs 获取用户操作日志
+func (bs *BaseService) GetUserActivityLogs(db *gorm.DB, where string, args ...interface{}) ([]*UserActivityLog, error) {
+	var logs []*entity.UserActivityLog
+	err := db.Where(where, args...).Find(&logs).Error
+	if err != nil {
+		return nil, errors.WithMessagef(err, "获取用户操作日志错误.")
+	}
+	var userActivityLogs []*UserActivityLog
+	if len(logs) == 0 {
+		return userActivityLogs, nil
+	}
+	for i := 0; i < len(logs); i++ {
+		userActivityLogs = append(userActivityLogs, convertToUserActivityLog(logs[i]))
+	}
+	return userActivityLogs, nil
+}
+
+// GetUserActivityLogByID 根据ID获取用户操作日志
+func (bs *BaseService) GetUserActivityLogByID(db *gorm.DB, id int64) (*UserActivityLog, error) {
+	logs, err := bs.GetUserActivityLogs(db, "id = ?", id)
+	if err != nil {
+		return nil, err
+	}
+	if len(logs) == 0 {
+		return nil, nil
+	}
+	return logs[0], nil
+}
+
+// GetUserActivityLogByUserID 根据用户ID获取用户操作日志
+func (bs *BaseService) GetUserActivityLogByUserID(db *gorm.DB, userID int64) ([]*UserActivityLog, error) {
+	logs, err := bs.GetUserActivityLogs(db, "user_id = ?", userID)
+	if err != nil {
+		return nil, err
+	}
+	return logs, nil
+}
+
+// UpdateUserLastActiveTime 更新用户最后活跃时间
+func (bs *BaseService) UpdateUserLastActiveTime(db *gorm.DB, userID int64) error {
+	return db.Model(&entity.User{}).Where("id = ?", userID).Update("last_active_time", time.Now()).Error
 }

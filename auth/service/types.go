@@ -6,17 +6,21 @@ import (
 )
 
 type User struct {
-	ID         int64           `json:"id"`
-	Username   string          `json:"username"`
-	NickName   string          `json:"nickName"`
-	Email      string          `json:"email"`
-	Phone      string          `json:"phone"`
-	Password   string          `json:"password"`
-	Avatar     string          `json:"avatar"`
-	Gender     entity.Gender   `json:"gender"`
-	Birthday   string          `json:"birthday"`
-	Signature  string          `json:"signature"`
-	Permission *UserPermission `json:"permission"`
+	ID          int64             `json:"id"`
+	Username    string            `json:"username"`
+	NickName    string            `json:"nickName"`
+	Email       string            `json:"email"`
+	Phone       string            `json:"phone"`
+	Password    string            `json:"password"`
+	Avatar      string            `json:"avatar"`
+	Gender      entity.Gender     `json:"gender"`
+	Birthday    string            `json:"birthday"`
+	Signature   string            `json:"signature"`
+	Permission  *UserPermission   `json:"permission"`
+	Status      entity.UserStatus `json:"status"`
+	CreatedAt   string            `json:"createdAt"`
+	UpdatedAt   string            `json:"updatedAt"`
+	LastLoginAt string            `json:"lastLoginAt"`
 }
 
 type BaseUserInfo struct {
@@ -210,4 +214,29 @@ func (up *UserPermission) IsSystemAdmin() bool {
 		}
 	}
 	return isAdmin
+}
+
+type UserActivityLog struct {
+	ID          int64  `json:"id"`
+	UserID      int64  `json:"userId"`
+	Action      string `json:"action"`
+	Description string `json:"description"`
+	IP          string `json:"ip"`
+	UserAgent   string `json:"userAgent"`
+	CreatedAt   string `json:"createdAt"`
+	UpdatedAt   string `json:"updatedAt"`
+}
+
+// convertToUserActivityLog 转换为用户操作日志
+func convertToUserActivityLog(log *entity.UserActivityLog) *UserActivityLog {
+	return &UserActivityLog{
+		ID:          log.ID,
+		UserID:      log.UserID,
+		Action:      log.Action,
+		Description: log.Description,
+		IP:          log.IP,
+		UserAgent:   log.UserAgent,
+		CreatedAt:   log.CreatedAt.Format("2006-01-02 15:04:05"),
+		UpdatedAt:   log.UpdatedAt.Format("2006-01-02 15:04:05"),
+	}
 }

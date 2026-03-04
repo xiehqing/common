@@ -16,8 +16,16 @@ type User struct {
 	Gender         Gender     `json:"gender" gorm:"column:gender;type:varchar(10);"`
 	Birthday       string     `json:"birthday" gorm:"column:birthday;type:varchar(25);"`
 	Signature      string     `json:"signature" gorm:"column:signature;type:varchar(5000);"`
+	Status         UserStatus `json:"status" gorm:"column:status;type:tinyint;not null"`
 	LastActiveTime *time.Time `json:"lastActiveTime" gorm:"column:last_active_time;type:dateTime;"`
 }
+
+type UserStatus int
+
+const (
+	UserStatusNormal UserStatus = 1
+	UserStatusLocked UserStatus = 2
+)
 
 func (u *User) TableName() string {
 	return "users"
