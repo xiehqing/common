@@ -120,7 +120,7 @@ func (bs *BaseService) GetMultiUserPermissions(db *gorm.DB, userIDs []int64) ([]
 	if err != nil {
 		return nil, errors.WithMessagef(err, "获取用户租户列表错误.")
 	}
-	err = db.Find(&roleOperations).Error
+	err = db.Preload("Operation").Find(&roleOperations).Error
 	if err != nil {
 		return nil, errors.WithMessagef(err, "获取角色权限列表错误.")
 	}
@@ -162,7 +162,7 @@ func getUserPermission(userId int64,
 			var ops []string
 			if ros, ok := roleOptsMap[ur.Role.ID]; ok {
 				for _, ro := range ros {
-					ops = append(ops, ro.Operation)
+					ops = append(ops, ro.Operation.Name)
 				}
 			}
 			// 系统级权限
@@ -183,7 +183,7 @@ func getUserPermission(userId int64,
 			var ops []string
 			if ros, ok := roleOptsMap[ur.Role.ID]; ok {
 				for _, ro := range ros {
-					ops = append(ops, ro.Operation)
+					ops = append(ops, ro.Operation.Name)
 				}
 			}
 			// 组合权限是否存在此租户的信息

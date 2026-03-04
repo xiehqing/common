@@ -7,9 +7,10 @@ import (
 
 type RoleOperation struct {
 	ormx.BaseModel
-	RoleID    int64  `json:"roleId" gorm:"column:role_id;type:bigint;not null"`
-	Role      *Role  `json:"role" gorm:"foreignKey:RoleID"`
-	Operation string `json:"operation" gorm:"column:operation;type:varchar(200);not null"`
+	RoleID      int64      `json:"roleId" gorm:"column:role_id;type:bigint;not null"`
+	Role        *Role      `json:"role" gorm:"foreignKey:RoleID"`
+	OperationID int64      `json:"operationId" gorm:"column:operation_id;type:bigint;not null"`
+	Operation   *Operation `json:"operation" gorm:"foreignKey:OperationID"`
 }
 
 func (r *RoleOperation) TableName() string {
