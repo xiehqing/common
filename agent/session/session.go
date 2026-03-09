@@ -36,6 +36,16 @@ type service struct {
 	q db.Querier
 }
 
+// HasIncompleteTodos returns true if there are any non-completed todos.
+func HasIncompleteTodos(todos []Todo) bool {
+	for _, todo := range todos {
+		if todo.Status != TodoStatusCompleted {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *service) CreateWithID(ctx context.Context, id, title string) (Session, error) {
 	dbSession, err := s.q.CreateSession(ctx, db.CreateSessionArgs{
 		ID:    id,

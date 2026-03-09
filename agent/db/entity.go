@@ -17,6 +17,12 @@ func (f *File) TableName() string {
 	return "files"
 }
 
+//type ReadFile struct {
+//	SessionID string `json:"session_id" gorm:"type:varchar(255);not null;comment:'session_id'"`
+//	Path      string `json:"path" gorm:"type:varchar(255);not null;comment:'path'"`
+//	ReadAt    int64  `json:"read_at" gorm:"type:bigint(20);not null;comment:'read_at'"`
+//}
+
 type Message struct {
 	ormx.UuidModel
 	SessionID        string `json:"sessionId" gorm:"type:varchar(255);not null;column:session_id;comment:'session_id'"`

@@ -748,15 +748,19 @@ func (c *Config) configureProviders(env env.Env, resolver VariableResolver, know
 		switch p.ID {
 		// Handle specific provider that require additional configuration
 		case catwalk.InferenceProviderVertexAI:
-			if !hasVertexCredentials(env) {
+			var (
+				project  = env.Get("VERTEXAI_PROJECT")
+				location = env.Get("VERTEXAI_LOCATION")
+			)
+			if project == "" || location == "" {
 				if configExists {
 					logs.Warn("Skipping Vertex AI provider due to missing credentials")
 					c.Providers.Del(string(p.ID))
 				}
 				continue
 			}
-			prepared.ExtraParams["project"] = env.Get("VERTEXAI_PROJECT")
-			prepared.ExtraParams["location"] = env.Get("VERTEXAI_LOCATION")
+			prepared.ExtraParams["project"] = project
+			prepared.ExtraParams["location"] = location
 		case catwalk.InferenceProviderAzure:
 			endpoint, err := resolver.ResolveValue(p.APIEndpoint)
 			if err != nil || endpoint == "" {
@@ -807,13 +811,10 @@ func (c *Config) configureProviders(env env.Env, resolver VariableResolver, know
 
 		// Make sure the provider ID is set
 		providerConfig.ID = id
-		if providerConfig.Name == "" {
-			providerConfig.Name = id // Use ID as name if not set
-		}
+		providerConfig.Name = cmp.Or(providerConfig.Name, id) // Use ID as name if not set
 		// default to OpenAI if not set
-		if providerConfig.Type == "" {
-			providerConfig.Type = catwalk.TypeOpenAICompat
-		}
+		providerConfig.Type = cmp.Or(providerConfig.Type, catwalk.TypeOpenAICompat)
+
 		if !slices.Contains(catwalk.KnownProviderTypes(), providerConfig.Type) && providerConfig.Type != hyper.Name {
 			logs.Warnf("Skipping custom provider due to unsupported provider type: %s", id)
 			c.Providers.Del(id)
@@ -859,6 +860,11 @@ func (c *Config) configureProviders(env env.Env, resolver VariableResolver, know
 		}
 		c.Providers.Set(id, providerConfig)
 	}
+
+	if c.Providers.Len() == 0 && c.Options.DisableDefaultProviders {
+		return fmt.Errorf("default providers are disabled and there are no custom providers are configured")
+	}
+
 	return nil
 }
 
@@ -961,6 +967,8 @@ func allToolNames() []string {
 		"todos",
 		"view",
 		"write",
+		"list_mcp_resources",
+		"read_mcp_resource",
 	}
 }
 
@@ -1001,7 +1009,7 @@ func (c *Config) SetupAgents() {
 		},
 
 		AgentTask: {
-			ID:           AgentCoder,
+			ID:           AgentTask,
 			Name:         "Task",
 			Description:  "An agent that helps with searching for context and finding implementation details.",
 			Model:        SelectedModelTypeLarge,

@@ -4,6 +4,7 @@ import (
 	"github.com/invopop/jsonschema"
 	"slices"
 	"strings"
+	"time"
 )
 
 const (
@@ -144,7 +145,17 @@ func (l LSPConfig) ResolvedEnv() []string {
 }
 
 type Tools struct {
-	Ls ToolLs `json:"ls,omitzero"`
+	Ls   ToolLs   `json:"ls,omitzero"`
+	Grep ToolGrep `json:"grep,omitzero"`
+}
+
+type ToolGrep struct {
+	Timeout *time.Duration `json:"timeout,omitempty" jsonschema:"description=Timeout for the grep tool call,default=5s,example=10s"`
+}
+
+// GetTimeout returns the user-defined timeout or the default.
+func (t ToolGrep) GetTimeout() time.Duration {
+	return ptrValOr(t.Timeout, 5*time.Second)
 }
 
 type ToolLs struct {

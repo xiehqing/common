@@ -58,3 +58,7 @@ type UpdateMessageArgs struct {
 	FinishedAt int64  `json:"finished_at"`
 	ID         string `json:"id"`
 }
+
+//
+//type ReadFile struct {
+//}

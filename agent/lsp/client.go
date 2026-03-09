@@ -8,6 +8,7 @@ import (
 	"github.com/xiehqing/common/agent/csync"
 	"github.com/xiehqing/common/agent/fsext"
 	"github.com/xiehqing/common/agent/home"
+	"github.com/xiehqing/common/pkg/logs"
 	"log/slog"
 	"maps"
 	"os"
@@ -33,6 +34,7 @@ type DiagnosticCounts struct {
 type Client struct {
 	client *powernap.Client
 	name   string
+	debug  bool
 
 	// File types this LSP server handles (e.g., .go, .rs, .py)
 	fileTypes []string
@@ -59,7 +61,7 @@ type Client struct {
 }
 
 // New creates a new LSP client using the powernap implementation.
-func New(ctx context.Context, name string, config config.LSPConfig, resolver config.VariableResolver) (*Client, error) {
+func New(ctx context.Context, name string, config config.LSPConfig, resolver config.VariableResolver, debug bool) (*Client, error) {
 	// Convert working directory to file URI
 	workDir, err := os.Getwd()
 	if err != nil {
@@ -102,6 +104,7 @@ func New(ctx context.Context, name string, config config.LSPConfig, resolver con
 	client := &Client{
 		client:      powernapClient,
 		name:        name,
+		debug:       debug,
 		fileTypes:   config.FileTypes,
 		diagnostics: csync.NewVersionedMap[protocol.DocumentURI, []protocol.Diagnostic](),
 		openFiles:   csync.NewMap[string, *OpenFileInfo](),
@@ -198,7 +201,7 @@ func (c *Client) SetDiagnosticsCallback(callback func(name string, count int)) {
 
 // WaitForServerReady waits for the server to be ready
 func (c *Client) WaitForServerReady(ctx context.Context) error {
-	cfg := config.Get()
+	//cfg := config.Get()
 
 	// Set initial state
 	c.SetServerState(StateStarting)
@@ -211,8 +214,8 @@ func (c *Client) WaitForServerReady(ctx context.Context) error {
 	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
 
-	if cfg != nil && cfg.Options.DebugLSP {
-		slog.Debug("Waiting for LSP server to be ready...")
+	if c.debug {
+		logs.Debug("Waiting for LSP server to be ready...")
 	}
 
 	c.openKeyConfigFiles(ctx)
@@ -225,15 +228,15 @@ func (c *Client) WaitForServerReady(ctx context.Context) error {
 		case <-ticker.C:
 			// Check if client is running
 			if !c.client.IsRunning() {
-				if cfg != nil && cfg.Options.DebugLSP {
-					slog.Debug("LSP server not ready yet", "server", c.name)
+				if c.debug {
+					logs.Debug("LSP server not ready yet, server：%s", c.name)
 				}
 				continue
 			}
 
 			// Server is ready
 			c.SetServerState(StateReady)
-			if cfg != nil && cfg.Options.DebugLSP {
+			if c.debug {
 				slog.Debug("LSP server is ready")
 			}
 			return nil
@@ -338,10 +341,8 @@ func (c *Client) IsFileOpen(filepath string) bool {
 
 // CloseAllFiles closes all currently open files.
 func (c *Client) CloseAllFiles(ctx context.Context) {
-	cfg := config.Get()
-	debugLSP := cfg != nil && cfg.Options.DebugLSP
 	for uri, _ := range c.openFiles.Seq2() {
-		if debugLSP {
+		if c.debug {
 			slog.Debug("Closing file", "file", uri)
 		}
 		if err := c.client.NotifyDidCloseTextDocument(ctx, uri); err != nil {
@@ -507,7 +508,7 @@ func HasRootMarkers(dir string, rootMarkers []string) bool {
 	}
 	for _, pattern := range rootMarkers {
 		// Use fsext.GlobWithDoubleStar to find matches
-		matches, _, err := fsext.GlobWithDoubleStar(pattern, dir, 1)
+		matches, _, err := fsext.GlobGitignoreAware(pattern, dir, 1)
 		if err == nil && len(matches) > 0 {
 			return true
 		}

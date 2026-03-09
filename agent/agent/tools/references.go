@@ -73,6 +73,11 @@ func NewReferencesTool(lspClients *csync.Map[string, *lsp.Client]) fantasy.Agent
 				}
 				allLocations = append(allLocations, locations...)
 				// XXX: should we break here or look for all results?
+				// Once we have results, we're done - LSP returns all references
+				// for the symbol, not just from this file.
+				if len(locations) > 0 {
+					break
+				}
 			}
 
 			if len(allLocations) > 0 {

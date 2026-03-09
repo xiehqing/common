@@ -3,7 +3,6 @@ package lsp
 import (
 	"context"
 	"encoding/json"
-	"github.com/xiehqing/common/agent/config"
 	"github.com/xiehqing/common/agent/lsp/util"
 	"log/slog"
 
@@ -80,11 +79,6 @@ func notifyFileWatchRegistration(id string, watchers []protocol.FileSystemWatche
 
 // HandleServerMessage handles server messages
 func HandleServerMessage(_ context.Context, method string, params json.RawMessage) {
-	cfg := config.Get()
-	if !cfg.Options.DebugLSP {
-		return
-	}
-
 	var msg protocol.ShowMessageParams
 	if err := json.Unmarshal(params, &msg); err != nil {
 		slog.Debug("Server message", "type", msg.Type, "message", msg.Message)

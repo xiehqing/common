@@ -37,7 +37,7 @@ type App struct {
 	eventsCtx        context.Context
 	events           chan tea.Msg
 	globalCtx        context.Context
-	cleanupFuncs     []func() error
+	cleanupFuncs     []func(context.Context) error
 }
 
 func New(ctx context.Context, additionalSystemPrompt string, cfg *config.Config, sessions session.Service, messages message.Service, files history.Service) (*App, error) {
@@ -67,6 +67,16 @@ func New(ctx context.Context, additionalSystemPrompt string, cfg *config.Config,
 	}()
 
 	// cleanup database upon app shutdown
+	// cleanup database upon app shutdown
+	app.cleanupFuncs = append(
+		app.cleanupFuncs,
+		func(context.Context) error {
+			// 关闭数据库链接
+			return nil
+		},
+		mcp.Close,
+	)
+
 	app.cleanupFuncs = append(app.cleanupFuncs, mcp.Close)
 
 	// TODO: remove the concept of agent config, most likely.
@@ -91,7 +101,7 @@ func (app *App) setupEvents() {
 	setupSubscriber(ctx, app.serviceEventsWG, "history", app.History.Subscribe, app.events)
 	//setupSubscriber(ctx, app.serviceEventsWG, "mcp", mcp.SubscribeEvents, app.events)
 	//setupSubscriber(ctx, app.serviceEventsWG, "lsp", SubscribeLSPEvents, app.events)
-	cleanupFunc := func() error {
+	cleanupFunc := func(context.Context) error {
 		cancel()
 		app.serviceEventsWG.Wait()
 		return nil
@@ -164,6 +174,8 @@ func (app *App) GetDefaultSmallModel(providerID string) config.SelectedModel {
 	}
 }
 
+const subscriberSendTimeout = 2 * time.Second
+
 func setupSubscriber[T any](
 	ctx context.Context,
 	wg *sync.WaitGroup,
@@ -173,6 +185,9 @@ func setupSubscriber[T any](
 ) {
 	wg.Go(func() {
 		subCh := subscriber(ctx)
+		sendTimer := time.NewTimer(0)
+		<-sendTimer.C
+		defer sendTimer.Stop()
 		for {
 			select {
 			case event, ok := <-subCh:
@@ -181,9 +196,16 @@ func setupSubscriber[T any](
 					return
 				}
 				var msg tea.Msg = event
+				if !sendTimer.Stop() {
+					select {
+					case <-sendTimer.C:
+					default:
+					}
+				}
+				sendTimer.Reset(subscriberSendTimeout)
 				select {
 				case outputCh <- msg:
-				case <-time.After(10 * time.Second):
+				case <-sendTimer.C:
 					logs.Warnf("message dropped due to slow consumer, name: %s", name)
 				case <-ctx.Done():
 					logs.Debugf("subscriber cancelled, name: %s", name)
@@ -236,14 +258,15 @@ func (app *App) Shutdown() {
 	// Now run remaining cleanup tasks in parallel.
 	var wg sync.WaitGroup
 
+	// Shared shutdown context for all timeout-bounded cleanup.
+	shutdownCtx, cancel := context.WithTimeout(context.WithoutCancel(app.globalCtx), 5*time.Second)
+	defer cancel()
+
 	// Kill all background shells.
 	wg.Go(func() {
-		shell.GetBackgroundShellManager().KillAll()
+		shell.GetBackgroundShellManager().KillAll(shutdownCtx)
 	})
 
-	// Shutdown all LSP clients.
-	shutdownCtx, cancel := context.WithTimeout(app.globalCtx, 5*time.Second)
-	defer cancel()
 	for name, client := range app.LSPClients.Seq2() {
 		wg.Go(func() {
 			if err := client.Close(shutdownCtx); err != nil &&
@@ -259,7 +282,7 @@ func (app *App) Shutdown() {
 	for _, cleanup := range app.cleanupFuncs {
 		if cleanup != nil {
 			wg.Go(func() {
-				if err := cleanup(); err != nil {
+				if err := cleanup(shutdownCtx); err != nil {
 					logs.Errorf("Failed to cleanup app properly on shutdown，error：%v", err)
 				}
 			})

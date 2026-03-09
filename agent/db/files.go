@@ -74,3 +74,31 @@ func (q *Queries) ListNewFiles(ctx context.Context) ([]File, error) {
 	err := q.db.Where("is_new = 1").Order("version DESC, created_at DESC").Scan(&files).Error
 	return files, err
 }
+
+//func (q *Queries) ListSessionReadFiles(ctx context.Context, sessionID string) ([]ReadFile, error) {
+//
+//	rows, err := q.query(ctx, q.listSessionReadFilesStmt, listSessionReadFiles, sessionID)
+//	if err != nil {
+//		return nil, err
+//	}
+//	defer rows.Close()
+//	items := []ReadFile{}
+//	for rows.Next() {
+//		var i ReadFile
+//		if err := rows.Scan(
+//			&i.SessionID,
+//			&i.Path,
+//			&i.ReadAt,
+//		); err != nil {
+//			return nil, err
+//		}
+//		items = append(items, i)
+//	}
+//	if err := rows.Close(); err != nil {
+//		return nil, err
+//	}
+//	if err := rows.Err(); err != nil {
+//		return nil, err
+//	}
+//	return items, nil
+//}

@@ -11,6 +11,7 @@ import (
 	"github.com/xiehqing/common/agent/filetracker"
 	"github.com/xiehqing/common/agent/lsp"
 	"github.com/xiehqing/common/agent/permission"
+	"github.com/xiehqing/common/agent/skills"
 	"io"
 	"os"
 	"path/filepath"
@@ -36,9 +37,19 @@ type ViewPermissionsParams struct {
 }
 
 type ViewResponseMetadata struct {
-	FilePath string `json:"file_path"`
-	Content  string `json:"content"`
+	FilePath            string           `json:"file_path"`
+	Content             string           `json:"content"`
+	ResourceType        ViewResourceType `json:"resource_type,omitempty"`
+	ResourceName        string           `json:"resource_name,omitempty"`
+	ResourceDescription string           `json:"resource_description,omitempty"`
 }
+
+type ViewResourceType string
+
+const (
+	ViewResourceUnset ViewResourceType = ""
+	ViewResourceSkill ViewResourceType = "skill"
+)
 
 const (
 	ViewToolName     = "view"
@@ -81,7 +92,7 @@ func NewViewTool(lspClients *csync.Map[string, *lsp.Client], permissions permiss
 					return fantasy.ToolResponse{}, fmt.Errorf("session ID is required for accessing files outside working directory")
 				}
 
-				granted, err := permissions.Request(ctx,
+				granted, permReqErr := permissions.Request(ctx,
 					permission.CreatePermissionRequest{
 						SessionID:   sessionID,
 						Path:        absFilePath,
@@ -92,8 +103,8 @@ func NewViewTool(lspClients *csync.Map[string, *lsp.Client], permissions permiss
 						Params:      ViewPermissionsParams(params),
 					},
 				)
-				if err != nil {
-					return fantasy.ToolResponse{}, err
+				if permReqErr != nil {
+					return fantasy.ToolResponse{}, permReqErr
 				}
 				if !granted {
 					return fantasy.ToolResponse{}, permission.ErrorPermissionDenied
@@ -159,8 +170,8 @@ func NewViewTool(lspClients *csync.Map[string, *lsp.Client], permissions permiss
 					return fantasy.NewTextErrorResponse(fmt.Sprintf("This model (%s) does not support image data.", modelName)), nil
 				}
 
-				imageData, err := os.ReadFile(filePath)
-				if err != nil {
+				imageData, readErr := os.ReadFile(filePath)
+				if readErr != nil {
 					return fantasy.ToolResponse{}, fmt.Errorf("error reading image file: %w", err)
 				}
 
@@ -169,34 +180,40 @@ func NewViewTool(lspClients *csync.Map[string, *lsp.Client], permissions permiss
 			}
 
 			// Read the file content
-			content, lineCount, err := readTextFile(filePath, params.Offset, params.Limit)
-			isValidUt8 := utf8.ValidString(content)
-			if !isValidUt8 {
-				return fantasy.NewTextErrorResponse("File content is not valid UTF-8"), nil
-			}
+			content, hasMore, err := readTextFile(filePath, params.Offset, params.Limit)
 			if err != nil {
 				return fantasy.ToolResponse{}, fmt.Errorf("error reading file: %w", err)
 			}
-
+			if !utf8.ValidString(content) {
+				return fantasy.NewTextErrorResponse("File content is not valid UTF-8"), nil
+			}
 			notifyLSPs(ctx, lspClients, filePath)
 			output := "<file>\n"
-			// Format the output with line numbers
 			output += addLineNumbers(content, params.Offset+1)
 
-			// Add a note if the content was truncated
-			if lineCount > params.Offset+len(strings.Split(content, "\n")) {
+			if hasMore {
 				output += fmt.Sprintf("\n\n(File has more lines. Use 'offset' parameter to read beyond line %d)",
 					params.Offset+len(strings.Split(content, "\n")))
 			}
 			output += "\n</file>\n"
 			output += getDiagnostics(filePath, lspClients)
 			filetracker.RecordRead(filePath)
+
+			meta := ViewResponseMetadata{
+				FilePath: filePath,
+				Content:  content,
+			}
+			if isSkillFile {
+				if skill, err := skills.Parse(filePath); err == nil {
+					meta.ResourceType = ViewResourceSkill
+					meta.ResourceName = skill.Name
+					meta.ResourceDescription = skill.Description
+				}
+			}
+
 			return fantasy.WithResponseMetadata(
 				fantasy.NewTextResponse(output),
-				ViewResponseMetadata{
-					FilePath: filePath,
-					Content:  content,
-				},
+				meta,
 			), nil
 		})
 }
@@ -226,38 +243,28 @@ func addLineNumbers(content string, startLine int) string {
 	return strings.Join(result, "\n")
 }
 
-func readTextFile(filePath string, offset, limit int) (string, int, error) {
+func readTextFile(filePath string, offset, limit int) (string, bool, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
-		return "", 0, err
+		return "", false, err
 	}
 	defer file.Close()
 
-	lineCount := 0
-
 	scanner := NewLineScanner(file)
 	if offset > 0 {
-		for lineCount < offset && scanner.Scan() {
-			lineCount++
+		skipped := 0
+		for skipped < offset && scanner.Scan() {
+			skipped++
 		}
 		if err = scanner.Err(); err != nil {
-			return "", 0, err
+			return "", false, err
 		}
 	}
 
-	if offset == 0 {
-		_, err = file.Seek(0, io.SeekStart)
-		if err != nil {
-			return "", 0, err
-		}
-	}
-
-	// Pre-allocate slice with expected capacity
+	// Pre-allocate slice with expected capacity.
 	lines := make([]string, 0, limit)
-	lineCount = offset
 
-	for scanner.Scan() && len(lines) < limit {
-		lineCount++
+	for len(lines) < limit && scanner.Scan() {
 		lineText := scanner.Text()
 		if len(lineText) > MaxLineLength {
 			lineText = lineText[:MaxLineLength] + "..."
@@ -265,16 +272,14 @@ func readTextFile(filePath string, offset, limit int) (string, int, error) {
 		lines = append(lines, lineText)
 	}
 
-	// Continue scanning to get total line count
-	for scanner.Scan() {
-		lineCount++
-	}
+	// Peek one more line only when we filled the limit.
+	hasMore := len(lines) == limit && scanner.Scan()
 
 	if err := scanner.Err(); err != nil {
-		return "", 0, err
+		return "", false, err
 	}
 
-	return strings.Join(lines, "\n"), lineCount, nil
+	return strings.Join(lines, "\n"), hasMore, nil
 }
 
 func getImageMimeType(filePath string) (bool, string) {

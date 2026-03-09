@@ -7,10 +7,10 @@ import (
 	_ "embed"
 	"fmt"
 	"github.com/xiehqing/common/agent/config"
+	"github.com/xiehqing/common/agent/fsext"
 	"github.com/xiehqing/common/agent/permission"
 	"github.com/xiehqing/common/agent/shell"
 	"html/template"
-	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -431,12 +431,7 @@ func countLines(s string) int {
 
 func normalizeWorkingDir(path string) string {
 	if runtime.GOOS == "windows" {
-		cwd, err := os.Getwd()
-		if err != nil {
-			cwd = "C:"
-		}
-		path = strings.ReplaceAll(path, filepath.VolumeName(cwd), "")
+		path = strings.ReplaceAll(path, fsext.WindowsWorkingDirDrive(), "")
 	}
-
 	return filepath.ToSlash(path)
 }

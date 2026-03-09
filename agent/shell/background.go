@@ -191,28 +191,21 @@ func (m *BackgroundShellManager) Cleanup() int {
 }
 
 // KillAll terminates all background shells.
-func (m *BackgroundShellManager) KillAll() {
+func (m *BackgroundShellManager) KillAll(ctx context.Context) {
 	shells := slices.Collect(m.shells.Seq())
 	m.shells.Reset(map[string]*BackgroundShell{})
-	done := make(chan struct{}, 1)
-	go func() {
-		var wg sync.WaitGroup
-		for _, shell := range shells {
-			wg.Go(func() {
-				shell.cancel()
-				<-shell.done
-			})
-		}
-		wg.Wait()
-		done <- struct{}{}
-	}()
 
-	select {
-	case <-done:
-		return
-	case <-time.After(time.Second * 5):
-		return
+	var wg sync.WaitGroup
+	for _, shell := range shells {
+		wg.Go(func() {
+			shell.cancel()
+			select {
+			case <-shell.done:
+			case <-ctx.Done():
+			}
+		})
 	}
+	wg.Wait()
 }
 
 // GetOutput returns the current output of a background shell.
@@ -238,4 +231,13 @@ func (bs *BackgroundShell) IsDone() bool {
 // Wait blocks until the background shell completes.
 func (bs *BackgroundShell) Wait() {
 	<-bs.done
+}
+
+func (bs *BackgroundShell) WaitContext(ctx context.Context) bool {
+	select {
+	case <-bs.done:
+		return true
+	case <-ctx.Done():
+		return false
+	}
 }

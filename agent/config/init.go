@@ -12,8 +12,8 @@ func Init(workingDir, dataDir string, pvdSvc provider.Service, debug bool) (*Con
 	if err != nil {
 		return nil, err
 	}
-	instance.Store(cfg)
-	return instance.Load(), nil
+	//instance.Store(cfg)
+	return cfg, nil
 }
 
 func Get() *Config {
@@ -27,12 +27,10 @@ func InitAndGet(workingDir, dataDir string, pvdSvc provider.Service, debug, skip
 	if err != nil {
 		return nil, err
 	}
-	instance.Store(cfg)
-	load := instance.Load()
 	if cfg.Permissions == nil {
 		cfg.Permissions = &Permissions{SkipRequests: skipRequests}
 	} else {
 		cfg.Permissions.SkipRequests = skipRequests
 	}
-	return load, nil
+	return cfg, nil
 }

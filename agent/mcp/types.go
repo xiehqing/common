@@ -1,7 +1,6 @@
 package mcp
 
 import (
-	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"time"
 )
 
@@ -49,8 +48,9 @@ type Event struct {
 
 // Counts number of available tools, prompts, etc.
 type Counts struct {
-	Tools   int
-	Prompts int
+	Tools     int
+	Prompts   int
+	Resources int
 }
 
 // ClientInfo holds information about an MCP client's state
@@ -58,7 +58,7 @@ type ClientInfo struct {
 	Name        string
 	State       State
 	Error       error
-	Client      *mcp.ClientSession
+	Client      *ClientSession
 	Counts      Counts
 	ConnectedAt time.Time
 }
