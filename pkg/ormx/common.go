@@ -50,6 +50,32 @@ func GetByCondition[T interface{}](db *gorm.DB, where string, args ...interface{
 	return lst, nil
 }
 
+// First 获取首条数据
+func First[T interface{}](db *gorm.DB, where string, args ...interface{}) (*T, error) {
+	var t *T
+	err := db.Where(where, args...).First(&t).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return t, nil
+}
+
+// Last 获取最后的数据
+func Last[T interface{}](db *gorm.DB, where string, args ...interface{}) (*T, error) {
+	var t *T
+	err := db.Where(where, args...).Last(&t).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return t, nil
+}
+
 func ModelStatistics[T interface{}](db *gorm.DB) (*Statistics, error) {
 	session := db.Model(new(T)).Select("count(*) as total", "max(updated_at) as last_updated")
 	var stats []*Statistics
